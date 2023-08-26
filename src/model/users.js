@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
     allowNull: false,
   },
   best_time: {
-    type: Integer,
+    type: Number,
     allowNul: true,
   }
 })
