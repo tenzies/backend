@@ -1,6 +1,6 @@
 'use strict';
 const Users = require('../model/users');
-const bycrpt = require('bcrypt')
+const bcrypt = require('bcrypt')
 
 const SignupHandler = async (req, res) => {
   const {username, password} = req.body;
@@ -11,7 +11,7 @@ const SignupHandler = async (req, res) => {
     res.json({ status: 201, msg: 'User created successfully' });
   }
   else {
-    res.json({ status: 200, msg: 'User already exists' });
+    res.json({ status: 400, msg: 'User already exists' });
   }
 }
 
@@ -21,8 +21,10 @@ const LoginHandler = async (req, res) => {
   if(record) {
     const passwordCheck = await bcrypt.compare(password, record.password);
     if(passwordCheck) {
-      delete record.password
-      res.json({ status: 200, payload: record })
+      res.json({ status: 200, msg: `Welcome ${username}`, body: {
+        username: record.username,
+        best_time: record.best_time
+      } })
     }
     else {
       res.json({ status: 404, msg: 'Invalid Username/Password'})
@@ -34,16 +36,44 @@ const LoginHandler = async (req, res) => {
 }
 
 const UpdateHandler = async (req, res) => {
-  const { username, best_time } = req.body;
-  await Users.findOneAndReplace({username}, {best_time: best_time});
-  res.json({
-    status: 200,
-    msg: 'You have achieved a new time record'
-  })
+  const { username, current_time } = req.body;
+  const record = await Users.findOne({username});
+  if( current_time < record.best_time || record.best_time === null) {
+    await Users.updateOne({username: username}, {best_time: current_time});
+    const updatedRecord = await Users.findOne({username: username}).select("username best_time");
+    res.json({
+      status: 204,
+      msg: 'You achieved a new time record',
+      body: {
+        username: updatedRecord.username,
+        best_time: updatedRecord.best_time
+      }
+    })
+  } else {
+    res.json({
+      status: 400,
+      msg: 'Current time record is higher than the best time record'
+    })
+  }
+}
+
+const TimeRecordsHandler = async (req, res) => {
+  const { limit, offset } = req.body;
+  try {
+    const record = await Users.find()
+    .select("username best_time")
+    .sort({best_time: 1}) 
+    .limit(limit)
+    .skip(offset)
+    res.json(record);
+  } catch(e) {
+    console.log(e)
+  }
 }
 
 module.exports = {
   SignupHandler,
   LoginHandler,
-  UpdateHandler
+  UpdateHandler,
+  TimeRecordsHandler
 }
