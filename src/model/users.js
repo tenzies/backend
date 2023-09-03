@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
   best_time: {
     type: Number,
     allowNul: true,
+    default: Number.MAX_SAFE_INTEGER
   }
 })
 
