@@ -1,9 +1,10 @@
 'use strict';
 const Users = require('../model/users');
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
 
 const SignupHandler = async (req, res) => {
-  const {username, password} = req.body;
+  const encodedData = req.headers.authorization.split(" ")[1];
+  const [username, password] = atob(encodedData).split(":");
   const record = await Users.findOne({ username: username });
   if(!record) {
     const hashedPassword = await bcrypt.hash(password, 12);
