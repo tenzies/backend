@@ -6,7 +6,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const UsersRouter = require('./routes/users-route');
 
-server.use(cors({ origin: 'http://localhost:3000' }));
+server.use(cors({ origin: process.env.CLIENT_URL }));
 server.use(express.json());
 server.use(UsersRouter);
 
